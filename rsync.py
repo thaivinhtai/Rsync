@@ -6,36 +6,50 @@ from os import (path, open, read, write, sendfile, lseek,
                 scandir, unlink, utime, chmod, fdopen)
 
 
+def introduction():
+    """
+    Just making fake-rsync as same as the real one when there's no argument :D
+    This is an introduction of fake-rsync
+    """
+    file_descriptors = open("introduction.md", O_RDONLY)
+    introduction_file = fdopen(file_descriptors)
+    return introduction_file.read()
+
+
 class Get_args():
     """
     This class uses argparse for get args and do some stuffs with them to get
     data for progressing.
     """
 
-    PARSER = argparse.ArgumentParser()
+    PARSER = argparse.ArgumentParser(description=introduction())
     PARSER.add_argument('source_files', nargs='*')
     PARSER.add_argument('destination_file', nargs='?')
-    PARSER.add_argument('-h', '--help',
-                        action='store_true')
-    PARSER.add_argument('-f', '--update',
-                        action='store_true', default=False)
+    # PARSER.add_argument('-h', '--help',
+    #                      action='store_true')
+    PARSER.add_argument('-u', '--update',
+                        action='store_true', default=False,
+                        help='skip files that are newer on the receiver')
     PARSER.add_argument('-c', '--checksum',
-                        action='store_true', default=False)
+                        action='store_true', default=False,
+                        help='skip based on checksum, not mod-time & size')
     PARSER.add_argument('-H', '--hard_links',
-                        action='store_true', default=True)
+                        action='store_true', default=True,
+                        help='preserve hard links')
     PARSER.add_argument('-l', '--links',
-                        action='store_true', default=True)
+                        action='store_true', default=True,
+                        help='copy symlinks as symlinks')
     ARGS = PARSER.parse_args()
 
     def __init__(self):
-        self.source_files = ARGS.source_files
+        self.source_files = self.ARGS.source_files
         self.invalid_files = self.invalid_source_files(self.source_files)
-        self.dest_file = ARGS.destination_file
-        self.h_option = ARGS.help
-        self.u_option = ARGS.update
-        self.c_option = ARGS.checksum
-        self.H_option = ARGS.hard_links
-        self.l_option = ARGS.links
+        self.dest_file = self.ARGS.destination_file
+        # self.h_option = self.ARGS.help
+        self.u_option = self.ARGS.update
+        self.c_option = self.ARGS.checksum
+        self.H_option = self.ARGS.hard_links
+        self.l_option = self.ARGS.links
         self.hardlink_files = dict()
 
     def check_path_file_type(self, path_file):
@@ -74,16 +88,6 @@ class Get_args():
         which INODE is key and value is list of files.
         """
         groups_of_hardlinks = {}
-
-
-def introduction():
-    """
-    Just making fake-rsync as same as the real one when there's no argument :D
-    This is an introduction of fake-rsync
-    """
-    file_descriptors = open("introduction.md", O_RDONLY)
-    introduction_file = fdopen(file_descriptors)
-    return introduction_file.read()
 
 
 def main():
