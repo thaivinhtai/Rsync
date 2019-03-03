@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 from os import (path, open, read, write, sendfile, lseek, O_RDWR,
                 mkdir, stat, O_RDONLY, symlink, link, readlink,
                 scandir, unlink, utime, chmod, fdopen)
@@ -47,6 +48,10 @@ def file_mod_time(file):
     """
     file = full_path(file)
     return stat(file).st_mtime
+
+
+def hash_md5(file):
+    return hashlib.md5(read_file(file)).hexdigest()
 
 
 def introduction(file="introduction.md"):
@@ -179,7 +184,9 @@ def are_they_same(file1, file2, checksum=False):
     if file_size(file1) != file_size(file2):
         return False
     if checksum:
-        return 0
+        if hash_md5(file1) != hash_md5(file2):
+            return False
+        return True
     else:
         if file_mod_time(file1) != file_mod_time(file2):
             return False
