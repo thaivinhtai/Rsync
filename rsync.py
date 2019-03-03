@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from os import (path, open, read, write, sendfile, lseek,
+from os import (path, open, read, write, sendfile, lseek, O_RDWR,
                 mkdir, stat, O_RDONLY, symlink, link, readlink,
                 scandir, unlink, utime, chmod, fdopen)
 
@@ -17,14 +17,36 @@ def full_path(file):
     return file_path
 
 
+def read_file(file):
+    """
+    Get contain of a file
+    """
+    file = full_path(file)
+    file = open(file, O_RDWR)
+    file = fdopen(file)
+    content = file.read()
+    file.close()
+    return content
+
+
+def write_file(file):
+    return 0
+
+
+def file_size(file):
+    return stat(file).st_size
+
+
+def mod_time_file(file):
+    return stat(file).st_mtime
+
+
 def introduction(file="introduction.md"):
     """
     Just making fake-rsync as same as the real one when there's no argument :D
     This is an introduction of fake-rsync
     """
-    file_descriptors = open(file, O_RDONLY)
-    introduction_file = fdopen(file_descriptors)
-    return introduction_file.read()
+    return read_file(file)
 
 
 class Get_args():
@@ -107,9 +129,9 @@ class Get_args():
         for file in list_files:
             if file not in self.invalid_files:
                 Inode = stat(file)
-                if Inode not in groups_of_hardlinks.keys():
-                    groups_of_hardlinks[Inode[1]] = []
-                groups_of_hardlinks[Inode[1]].append(file)
+                if Inode.st_ino not in groups_of_hardlinks.keys():
+                    groups_of_hardlinks[Inode.st_ino] = []
+                groups_of_hardlinks[Inode.st_ino].append(file)
         return groups_of_hardlinks
 
 
@@ -120,14 +142,13 @@ def lcs(content1, content2):
     # find the length of the strings
     len1 = len(content1)
     len2 = len(content2)
-
     # declaring the array for storing the dp values
     L = [[None]*(len2 + 1) for i in range(len1 + 1)]
-    print(L)
-
-    """Following steps build L[len1 + 1][len2 + 1] in bottom up fashion
+    """
+    Following steps build L[len1 + 1][len2 + 1] in bottom up fashion
     Note: L[i][j] contains length of LCS of content1[0..i-1]
-    and content2[0..j-1]"""
+    and content2[0..j-1]
+    """
     for i in range(len1 + 1):
         for j in range(len2 + 1):
             if i == 0 or j == 0:
@@ -136,9 +157,21 @@ def lcs(content1, content2):
                 L[i][j] = L[i-1][j-1]+1
             else:
                 L[i][j] = max(L[i-1][j], L[i][j-1])
-    print(L)
-    # L[m][n] contains the length of LCS of content1[0..n-1] & content2[0..m-1]
+    """
+    L[len1][len2] contains the length of LCS
+    of content1[0..len2-1] & content2[0..len1-1]
+    """
     return L[len1][len2]
+
+
+def are_they_same(file1, file2, checksum=False):
+    """
+    compare 2 files in normal case or -c case
+    """
+    if checksum:
+        return 0
+    else:
+        return 1
 
 
 def main():
@@ -153,7 +186,8 @@ def main():
     print(argv.invalid_files)
     print(argv.dest_file)
     print(argv.hardlink_files)
-    print(lcs(introduction(), introduction("quick_intro")))
+    print(lcs("ABCD", "BCAD"))
+    print(file_size(argv.dest_file))
 
 
 if __name__ == "__main__":
