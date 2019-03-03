@@ -20,5 +20,6 @@ to an rsync daemon, and require SRC or DEST to start with a module name.
 
 Options
  -c, --checksum              skip based on checksum, not mod-time & size
+ -r, --recursive             recurse into directories
  -u, --update                skip files that are newer on the receiver
 (-h) --help                  show this help (-h is --help only if used alone)
