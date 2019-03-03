@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 import hashlib
-from os import (path, open, read, write, sendfile, lseek, O_RDWR,
-                mkdir, stat, O_RDONLY, symlink, link, readlink,
+from os import (path, open, read, write, sendfile, lseek, O_RDWR, O_CREAT,
+                mkdir, stat, O_RDONLY, symlink, link, readlink, close,
                 scandir, unlink, utime, chmod, fdopen)
 
 
@@ -16,6 +16,17 @@ def full_path(file):
     else:
         file_path = path.realpath(file_path)
     return file_path
+
+
+def create_text_file(name, content):
+    """
+    Create a text file if it's not exist
+    """
+    file_descriptor = open(name, O_RDWR | O_CREAT)
+    byte_object = str.encode(content)
+    ret = write(file_descriptor, byte_object)
+    close(file_descriptor)
+    return 0
 
 
 def read_file(file):
@@ -39,7 +50,10 @@ def file_size(file):
     Reuturn size of file in byte
     """
     file = full_path(file)
-    return stat(file).st_size
+    try:
+        return stat(file).st_size
+    except FileNotFoundError:
+        return 0
 
 
 def file_mod_time(file):
@@ -48,6 +62,22 @@ def file_mod_time(file):
     """
     file = full_path(file)
     return stat(file).st_mtime
+
+
+def file_access_time(file):
+    """
+    Return file's access time
+    """
+    file = full_path(file)
+    return stat(file).st_atime
+
+
+def file_mode(file):
+    """
+    return protection bits
+    """
+    file = full_path(file)
+    return stat(file).st_mode
 
 
 def hash_md5(file):
@@ -226,14 +256,23 @@ def main():
     # there is one of above errors, exit.
     if error > 0:
         return 0
-    
-    # print(argv.source_files)
-    # print(argv.invalid_files)
-    # print(argv.dest_file)
-    # print(argv.hardlink_files)
-    # print(lcs("ABCD", "BCAD"))
-    # print(file_size(argv.dest_file))
-    # print(hash_md5("link"))
+    # one source file and one destination file
+    if len(argv.source_files) == 1 and argv.dest_file != "":
+        if are_they_same(argv.source_files[0], argv.dest_file, argv.c_option):
+            return 0
+        else:
+            if argv.check_path_file_type(argv.source_files[0]) == "directory":
+                print("skipping directory " + argv.source_files[0])
+                return 0
+            elif argv.check_path_file_type(argv.source_files[0]) == "file":
+                if argv.check_path_file_type(argv.dest_file) == 0:
+                    create_text_file(argv.dest_file,
+                                     read_file(argv.source_files[0]))
+                    utime(full_path(argv.dest_file),
+                          (file_access_time(argv.source_files[0]),
+                           file_mod_time(argv.source_files[0])))
+                    chmod(full_path(argv.dest_file),
+                          file_mode(argv.source_files[0]))
 
 
 if __name__ == "__main__":
