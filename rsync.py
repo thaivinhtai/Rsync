@@ -113,6 +113,34 @@ class Get_args():
         return groups_of_hardlinks
 
 
+def lcs(content1, content2):
+    """
+    Solution to the Longest Common Subsequence problem.
+    """
+    # find the length of the strings
+    len1 = len(content1)
+    len2 = len(content2)
+
+    # declaring the array for storing the dp values
+    L = [[None]*(len2 + 1) for i in range(len1 + 1)]
+    print(L)
+
+    """Following steps build L[len1 + 1][len2 + 1] in bottom up fashion
+    Note: L[i][j] contains length of LCS of content1[0..i-1]
+    and content2[0..j-1]"""
+    for i in range(len1 + 1):
+        for j in range(len2 + 1):
+            if i == 0 or j == 0:
+                L[i][j] = 0
+            elif content1[i-1] == content2[j-1]:
+                L[i][j] = L[i-1][j-1]+1
+            else:
+                L[i][j] = max(L[i-1][j], L[i][j-1])
+    print(L)
+    # L[m][n] contains the length of LCS of content1[0..n-1] & content2[0..m-1]
+    return L[len1][len2]
+
+
 def main():
     """
     Main funtion
@@ -125,6 +153,7 @@ def main():
     print(argv.invalid_files)
     print(argv.dest_file)
     print(argv.hardlink_files)
+    print(lcs(introduction(), introduction("quick_intro")))
 
 
 if __name__ == "__main__":
