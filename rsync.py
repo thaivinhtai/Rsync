@@ -176,14 +176,14 @@ def are_they_same(file1, file2, checksum=False):
     """
     compare 2 files in normal case or -c case
     """
+    if file_size(file1) != file_size(file2):
+        return False
     if checksum:
         return 0
     else:
-        if file_size(file1) != file_size(file2):
-            return False
         if file_mod_time(file1) != file_mod_time(file2):
             return False
-        return True
+    return True
 
 
 def main():
