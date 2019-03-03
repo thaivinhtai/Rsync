@@ -55,6 +55,8 @@ class Get_args():
     PARSER.add_argument('-l', '--links',
                         action='store_true', default=True,
                         help='copy symlinks as symlinks')
+    PARSER.add_argument('-alg', '--algorithm',
+                        help='algorithm will be used', default="LCS")
     ARGS = PARSER.parse_args()
 
     def __init__(self):

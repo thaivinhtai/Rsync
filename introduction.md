@@ -22,4 +22,7 @@ Options
  -c, --checksum              skip based on checksum, not mod-time & size
  -r, --recursive             recurse into directories
  -u, --update                skip files that are newer on the receiver
+ -H, --hard_links            preserve hard links
+ -l, --links                 copy symlinks as symlinks
+ -alg ALG,--algorithm ALG    algorithm will be used
 (-h) --help                  show this help (-h is --help only if used alone)
