@@ -34,10 +34,18 @@ def write_file(file):
 
 
 def file_size(file):
+    """
+    Reuturn size of file in byte
+    """
+    file = full_path(file)
     return stat(file).st_size
 
 
-def mod_time_file(file):
+def file_mod_time(file):
+    """
+    Return most recent mod time of file
+    """
+    file = full_path(file)
     return stat(file).st_mtime
 
 
@@ -94,7 +102,7 @@ class Get_args():
         self.H_option = self.ARGS.hard_links
         self.l_option = self.ARGS.links
         self.r_option = self.ARGS.recursive
-        # dictionary of INODE and list of files have same INODE
+        # dictionary of [1]INODE and list of files have same INODE
         self.hardlink_files = self.which_files_hardlink(self.source_files)
 
     def check_path_file_type(self, file):
@@ -171,7 +179,11 @@ def are_they_same(file1, file2, checksum=False):
     if checksum:
         return 0
     else:
-        return 1
+        if file_size(file1) != file_size(file2):
+            return False
+        if file_mod_time(file1) != file_mod_time(file2):
+            return False
+        return True
 
 
 def main():
