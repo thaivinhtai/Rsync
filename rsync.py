@@ -51,7 +51,10 @@ def file_mod_time(file):
 
 
 def hash_md5(file):
-    return hashlib.md5(read_file(file)).hexdigest()
+    """
+    Return hash value of a file's content
+    """
+    return hashlib.md5(read_file(file).encode("utf-8")).hexdigest()
 
 
 def introduction(file="introduction.md"):
@@ -97,11 +100,11 @@ class Get_args():
     def __init__(self):
         self.source_files = self.ARGS.source_files
         # list of files which does not exist
-        self.invalid_files = self.invalid_source_files(self.source_files)
         self.dest_file = self.ARGS.destination_file  # destination file
         if len(self.ARGS.source_files) >= 2:
             self.dest_file = self.ARGS.source_files[-1]
             self.source_files.remove(self.dest_file)
+        self.invalid_files = self.invalid_source_files(self.source_files)
         self.u_option = self.ARGS.update
         self.c_option = self.ARGS.checksum
         self.H_option = self.ARGS.hard_links
@@ -114,14 +117,17 @@ class Get_args():
         """
         Check if the path is file, directory, symlink
         """
-        file_path = full_path(file)
-        if path.isfile(file_path):
-            return "file"
-        if path.isdir(file_path):
-            return "directory"
-        if path.islink(file_path):
-            return "symlink"
-        return 0
+        try:
+            file_path = full_path(file)
+            if path.isfile(file_path):
+                return "file"
+            if path.isdir(file_path):
+                return "directory"
+            if path.islink(file_path):
+                return "symlink"
+            return 0
+        except FileNotFoundError:
+            return 0
 
     def invalid_source_files(self, list_files):
         """
@@ -197,16 +203,37 @@ def main():
     """
     Main funtion
     """
+    error = 0
     argv = Get_args()
+    # if there is no argument, print introduction
     if (len(argv.source_files) == 0):
         print(introduction())
         return 0
-    print(argv.source_files)
-    print(argv.invalid_files)
-    print(argv.dest_file)
-    print(argv.hardlink_files)
-    print(lcs("ABCD", "BCAD"))
-    print(file_size(argv.dest_file))
+    # if there are invalid files, print error
+    if len(argv.invalid_files) > 0:
+        for file in argv.invalid_files:
+            file = full_path(file)
+            print("rsync: link_stat \"%s\" failed: " % file +
+                  "No such file or directory (2)")
+        error = error + 1
+    # if destination file is not a directory or has not eisted, print error
+    if (len(argv.source_files) >= 2):
+        if (argv.check_path_file_type(argv.dest_file) not in ["directory", 0]):
+            print("rsync error: errors selecting input/output files, " +
+                  """dirs (code 3) at main.c(640)
+ [Receiver=3.1.1]""")
+        error = error + 1
+    # there is one of above errors, exit.
+    if error > 0:
+        return 0
+    
+    # print(argv.source_files)
+    # print(argv.invalid_files)
+    # print(argv.dest_file)
+    # print(argv.hardlink_files)
+    # print(lcs("ABCD", "BCAD"))
+    # print(file_size(argv.dest_file))
+    # print(hash_md5("link"))
 
 
 if __name__ == "__main__":
