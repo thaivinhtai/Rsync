@@ -273,6 +273,10 @@ def main():
                            file_mod_time(argv.source_files[0])))
                     chmod(full_path(argv.dest_file),
                           file_mode(argv.source_files[0]))
+                elif argv.check_path_file_type(argv.dest_file) == "file":
+                    len_source_file = len(read_file(argv.source_files[0]))
+                    len_dest_file = len(read_file(argv.dest_file))
+                    if
 
 
 if __name__ == "__main__":
